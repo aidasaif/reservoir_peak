@@ -33,7 +33,7 @@ ui.graphicsView_i28.showGrid(x=True, y=True)
 
 pd.options.mode.chained_assignment = None
 
-column = ['obr', 'S1S2_t1', 'S1S2_t2', 'S1S2_t3', 'S1_area', 'S2_area', 'S3_t1', 'S3_t2', 'S3_t3', 'S3_bl', 'S3_area',
+column = ['obr', 'S1S2_t1', 'S1S2_t2', 'S1S2_t2_a', 'S1S2_t3', 'S1_area', 'S2A_area', 'S2B_area', 'S3_t1', 'S3_t2', 'S3_t3', 'S3_bl', 'S3_area',
           'S3__area', 'S3CO_t1', 'S3CO_t2', 'S3CO_t3', 'S3CO_bl', 'S3CO_area', 'S3_CO_area', 'S4CO2_t1', 'S4CO2_t2',
           'S4CO2_t3', 'S4CO2_bl', 'S4CO2m_bl', 'S4CO2_area', 'S5_area', 'S4CO_t1', 'S4CO_t2', 'S4CO_bl',
           'S4CO_area', 'S1S2_attn', 'S3_attn', 'S3CO_attn', 'S4CO2_attn', 'S4CO_attn', 'Tmax']
@@ -83,7 +83,6 @@ def open_dir():
                     n += 1
         else:
             for file_name in list_files:
-                print('file_name: ', file_name)
                 attn = False
                 if file_name.endswith('ms.txt') and not file_name.endswith('.xlsx'):
                     ui.listWidget.addItem(file_name)
@@ -113,8 +112,9 @@ def open_dir():
                     ui.listWidget.addItem(file_name)
                     signal_fid = select_signal_by_ion(dir_name + '/' + file_name, 0)
                     dict_obr['obr'] = '_'.join(file_name.split('_')[:-1])
-                    dict_obr['S1S2_t1'], dict_obr['S1S2_t2'], dict_obr['S1S2_t3'], dict_obr['S1_area'], dict_obr['S2_area'], \
-                    dict_obr['S1S2_attn'] = calc_S1S2(signal_fid)
+                    dict_obr['S1S2_t1'], dict_obr['S1S2_t2'], dict_obr['S1S2_t2_a'], dict_obr['S1S2_t3'], \
+                        dict_obr['S1_area'], dict_obr['S2A_area'], dict_obr['S2B_area'], \
+                        dict_obr['S1S2_attn'] = calc_S1S2(signal_fid)
                     dict_obr['Tmax'] = 25 * calc_Tmax(signal_fid) + 225
                     attn = dict_obr['S1S2_attn']
                 if len(dict_obr) == len(column):
@@ -125,8 +125,6 @@ def open_dir():
                     ui.listWidget.item(ui.listWidget.count() - 1).setBackground(QtGui.QColor(255, 100, 100))
                 ui.progressBar.setValue(n)
                 n += 1
-                print('dict_obr: ', dict_obr)
-            print('tab_areas: ', tab_areas)
 
         if ui.listWidget.count() > 0:
             ui.listWidget.setCurrentRow(0)
@@ -154,22 +152,32 @@ def choose_file():
         ui.graphicsView_i28.hide()
         ui.widget2.hide()
         ui.label_ion28.hide()
+        ui.doubleSpinBox1_t2_A.show()
+        ui.label_2A.show()
+        ui.label_area3.show()
+        ui.area3_2.show()
+        ui.label_47.show()
+        ui.conc3_2.show()
         ui.name1.setText('S1/S2')
         ui.doubleSpinBox1_t3.setMaximum(signal_i44['Ret.Time'].max())
+        ui.doubleSpinBox1_t2_A.setMaximum(signal_i44['Ret.Time'].max())
         ui.doubleSpinBox1_t2.setMaximum(signal_i44['Ret.Time'].max())
         ui.doubleSpinBox1_t1.setMaximum(signal_i44['Ret.Time'].max())
         ui.doubleSpinBox1_t3.setValue(signal_i44['Ret.Time'][tab_areas['S1S2_t3'][obr_row]])
+        ui.doubleSpinBox1_t2_A.setValue(signal_i44['Ret.Time'][tab_areas['S1S2_t2_a'][obr_row]])
         ui.doubleSpinBox1_t2.setValue(signal_i44['Ret.Time'][tab_areas['S1S2_t2'][obr_row]])
         ui.doubleSpinBox1_t1.setValue(signal_i44['Ret.Time'][tab_areas['S1S2_t1'][obr_row]])
         ui.doubleSpinBox_dtmax.show()
         ui.doubleSpinBox_dtmax.setValue((tab_areas['Tmax'][obr_row] - 225) / 25)
         ui.spinBox1_bl1.hide()
         ui.spinBox1_bl2.hide()
-        area1, area2 = tab_areas['S1_area'][obr_row], tab_areas['S2_area'][obr_row]
+        area1, area2, area3_2 = tab_areas['S1_area'][obr_row], tab_areas['S2_area'][obr_row], tab_areas['S3_2_area'][obr_row]
         ui.area1.setText('{:.0f}'.format(area1))
         ui.area2.setText('{:.0f}'.format(area2))
+        ui.area3_2.setText('{:.0f}'.format(area3_2))
         ui.conc1.setText('{:.6f}'.format(calc_Cpr(area1, float(ui.S1_kg.text()), Wt)))
-        ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, float(ui.S2_kg.text()), Wt)))
+        ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, float(ui.S1_kg.text()), Wt)))
+        ui.conc3_2.setText('{:.6f}'.format(calc_Cpr(area3_2, float(ui.S2_kg.text()), Wt)))
         ui.Tmax.show()
         ui.Tmax.setText('{:.2f}'.format(tab_areas['Tmax'][obr_row] - float(ui.dTmax.text())))
         t1_i44 = tab_areas['S1S2_t1'][obr_row]
@@ -189,6 +197,10 @@ def choose_file():
         ui.doubleSpinBox1_t3.setValue(signal_i44['Ret.Time'][tab_areas['S4CO2_t3'][obr_row]])
         ui.doubleSpinBox1_t2.setValue(signal_i44['Ret.Time'][tab_areas['S4CO2_t2'][obr_row]])
         ui.doubleSpinBox1_t1.setValue(signal_i44['Ret.Time'][tab_areas['S4CO2_t1'][obr_row]])
+        ui.doubleSpinBox1_t2_A.hide()
+        ui.label_2A.hide()
+        ui.label_area3.hide()
+        ui.area3_2.hide()
         ui.spinBox1_bl1.show()
         ui.spinBox1_bl1.setValue(int(tab_areas['S4CO2_bl'][obr_row]))
         area1, area2 = tab_areas['S4CO2_area'][obr_row], tab_areas['S5_area'][obr_row]
@@ -198,6 +210,8 @@ def choose_file():
         ui.area2.setText('{:.0f}'.format(area2))
         ui.conc1.setText('{:.6f}'.format(calc_Cpr(area1, float(ui.S4CO2_kg.text()), Wt)))
         ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, float(ui.S5_kg.text()), Wt)))
+        ui.label_47.hide()
+        ui.conc3_2.hide()
         t1_i44 = tab_areas['S4CO2_t1'][obr_row]
         t2_i44 = tab_areas['S4CO2_t3'][obr_row]
         ui.doubleSpinBox2_t2.setMaximum(signal_i28['Ret.Time'].max())
@@ -228,6 +242,10 @@ def choose_file():
         ui.doubleSpinBox1_t3.setValue(signal_i44['Ret.Time'][tab_areas['S3_t3'][obr_row]])
         ui.doubleSpinBox1_t2.setValue(signal_i44['Ret.Time'][tab_areas['S3_t2'][obr_row]])
         ui.doubleSpinBox1_t1.setValue(signal_i44['Ret.Time'][tab_areas['S3_t1'][obr_row]])
+        ui.doubleSpinBox1_t2_A.hide()
+        ui.label_2A.hide()
+        ui.label_area3.hide()
+        ui.area3_2.hide()
         ui.spinBox1_bl1.show()
         ui.spinBox1_bl1.setValue(int(tab_areas['S3_bl'][obr_row]))
         area1, area2 = tab_areas['S3_area'][obr_row], tab_areas['S3__area'][obr_row]
@@ -235,6 +253,8 @@ def choose_file():
         ui.area2.setText('{:.0f}'.format(area2))
         ui.conc1.setText('{:.6f}'.format(calc_Cpr(area1, float(ui.S3_kg.text()), Wt)))
         ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, float(ui.S3__kg.text()), Wt)))
+        ui.conc3_2.hide()
+        ui.label_47.hide()
         ui.spinBox1_bl2.hide()
         t1_i44 = tab_areas['S3_t1'][obr_row]
         t2_i44 = tab_areas['S3_t3'][obr_row]
@@ -273,6 +293,7 @@ def change_param_1():
     ui.graphicsView_i44.clear()
     t1_1 = ui.doubleSpinBox1_t1.value()
     t2_1 = ui.doubleSpinBox1_t2.value()
+    t2_a_1 = ui.doubleSpinBox1_t2_A.value()
     t3_1 = ui.doubleSpinBox1_t3.value()
     bl_1 = ui.spinBox1_bl1.value()
     bl_2 = bl_1 if ui.name1.text() == 'S3/S3\'' else ui.spinBox1_bl2.value()
@@ -294,24 +315,29 @@ def change_param_1():
     if ion == 0:
         it1 = signal_i44.loc[signal_i44['Ret.Time'] == get_nearest_value(signal_i44['Ret.Time'], t1_1)].index.tolist()[0]
         it2 = signal_i44.loc[signal_i44['Ret.Time'] == get_nearest_value(signal_i44['Ret.Time'], t2_1)].index.tolist()[0]
+        it2_a_1 = signal_i44.loc[signal_i44['Ret.Time'] == get_nearest_value(signal_i44['Ret.Time'], t2_a_1)].index.tolist()[0]
         it3 = signal_i44.loc[signal_i44['Ret.Time'] == get_nearest_value(signal_i44['Ret.Time'], t3_1)].index.tolist()[0]
         draw_area(ui.graphicsView_i44, signal_i44, it1, it2, False, '#44944A')
-        draw_area(ui.graphicsView_i44, signal_i44, it2, it3, False, '#423189')
-        draw_legend(ui.graphicsView_i44, t1_1, t2_1, t3_1, ui.doubleSpinBox_dtmax.value(), ui.graphicsView_i44.viewRange()[1][1])
+        draw_area(ui.graphicsView_i44, signal_i44, it2, it2_a_1, False, '#e26031')
+        draw_area(ui.graphicsView_i44, signal_i44, it2_a_1, it3, False, '#423189')
+        draw_legend(ui.graphicsView_i44, t1_1, t2_1, t2_a_1, t3_1, ui.doubleSpinBox_dtmax.value(), ui.graphicsView_i44.viewRange()[1][1])
         draw_tmax(ui.graphicsView_i44, ui.doubleSpinBox_dtmax.value())
         ui.Tmax.setText(str(round((ui.doubleSpinBox_dtmax.value() * 25 + 225) - float(ui.dTmax.text()), 2)))
         area1 = calc_area(signal_i44, it1, it2, False)
-        area2 = calc_area(signal_i44, it2, it3, False)
+        area2 = calc_area(signal_i44, it2, it2_a_1, False)
+        area3_2 = calc_area(signal_i44, it2_a_1, it3, True)
+        ui.area3_2.setText('{:.0f}'.format(area3_2))
+        ui.conc3_2.setText('{:.6f}'.format(calc_Cpr(area3_2, Kg2, Wt)))
     else:
         draw_area(ui.graphicsView_i44, signal_i44, int((t1_1 / 0.005) - 4), int((t2_1 / 0.005) - 4), bl_1, '#44944A')
         draw_area(ui.graphicsView_i44, signal_i44, int((t2_1 / 0.005) - 4), int((t3_1 / 0.005) - 4), bl_2, '#423189')
-        draw_legend(ui.graphicsView_i44, t1_1, t2_1, t3_1, False, ui.graphicsView_i44.viewRange()[1][1])
+        draw_legend(ui.graphicsView_i44, t1_1, t2_1, False, t3_1, False, ui.graphicsView_i44.viewRange()[1][1])
         area1 = calc_area(signal_i44, int((t1_1 / 0.005) - 4), int((t2_1 / 0.005) - 4), bl_1)
         area2 = calc_area(signal_i44, int((t2_1 / 0.005) - 4), int((t3_1 / 0.005) - 4), bl_2)
     ui.area1.setText('{:.0f}'.format(area1))
     ui.area2.setText('{:.0f}'.format(area2))
     ui.conc1.setText('{:.6f}'.format(calc_Cpr(area1, Kg1, Wt)))
-    ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, Kg2, Wt)))
+    ui.conc2.setText('{:.6f}'.format(calc_Cpr(area2, Kg1, Wt)))
 
 
 def change_param_2():
@@ -328,14 +354,14 @@ def change_param_2():
     ui.graphicsView_i28.plot(x=signal_i28['Ret.Time'], y=signal_i28['Absolute Intensity'], pen=pg.mkPen(width=2,
                                                                                                         color='r'))
     draw_area(ui.graphicsView_i28, signal_i28, int((t1_2 / 0.005) - 4), int((t2_2 / 0.005) - 4), bl, '#44944A')
-    draw_legend(ui.graphicsView_i28, t1_2, t2_2, False, False, ui.graphicsView_i28.viewRange()[1][1])
+    draw_legend(ui.graphicsView_i28, t1_2, t2_2, False, False, False, ui.graphicsView_i28.viewRange()[1][1])
     area3 = calc_area(signal_i28, int((t1_2 / 0.005) - 4), int((t2_2 / 0.005) - 4), bl)
     Kg3 = float(ui.S3CO_kg.text()) if ui.name2.text() == 'S3CO/S3\'CO' else float(ui.S4CO_kg.text())
     ui.area3.setText('{:.0f}'.format(area3))
     ui.conc3.setText('{:.6f}'.format(calc_Cpr(area3, Kg3, Wt)))
     if ui.name2.text() == 'S3CO/S3\'CO':
         draw_area(ui.graphicsView_i28, signal_i28, int((t2_2 / 0.005) - 4), int((t3_2 / 0.005) - 4), bl, '#423189')
-        draw_legend(ui.graphicsView_i28, t1_2, t2_2, t3_2, False, ui.graphicsView_i28.viewRange()[1][1])
+        draw_legend(ui.graphicsView_i28, t1_2, t2_2, False, t3_2, False, ui.graphicsView_i28.viewRange()[1][1])
         area4 = calc_area(signal_i28, int((t2_2 / 0.005) - 4), int((t3_2 / 0.005) - 4), bl)
         ui.area4.setText('{:.0f}'.format(area4))
         ui.conc4.setText('{:.6f}'.format(calc_Cpr(area4, float(ui.S3_CO_kg.text()), Wt)))
@@ -355,13 +381,17 @@ def save_change():
                              get_nearest_value(signal_i44['Ret.Time'], ui.doubleSpinBox1_t1.value())].index.tolist()[0]
         it2 = signal_i44.loc[signal_i44['Ret.Time'] ==
                              get_nearest_value(signal_i44['Ret.Time'], ui.doubleSpinBox1_t2.value())].index.tolist()[0]
+        it2a = signal_i44.loc[signal_i44['Ret.Time'] ==
+                             get_nearest_value(signal_i44['Ret.Time'], ui.doubleSpinBox1_t2_A.value())].index.tolist()[0]
         it3 = signal_i44.loc[signal_i44['Ret.Time'] ==
                              get_nearest_value(signal_i44['Ret.Time'], ui.doubleSpinBox1_t3.value())].index.tolist()[0]
         tab_areas['S1S2_t3'][obr_row] = it3
         tab_areas['S1S2_t2'][obr_row] = it2
+        tab_areas['S1S2_t2_a'][obr_row] = it2a
         tab_areas['S1S2_t1'][obr_row] = it1
         tab_areas['S1_area'][obr_row] = float(ui.area1.text())
-        tab_areas['S2_area'][obr_row] = float(ui.area2.text())
+        tab_areas['S2A_area'][obr_row] = float(ui.area2.text())
+        tab_areas['S2B_area'][obr_row] = float(ui.area3_2.text())
         tab_areas['Tmax'][obr_row] = float(ui.Tmax.text()) + float(ui.dTmax.text())
         tab_areas['S1S2_attn'][obr_row] = False
 
@@ -430,7 +460,7 @@ def open_grad():
 
 
 def save_result():
-    tab_result = pd.DataFrame(columns=['name', 'Wt', 'S1', 'S2', 'S3', 'S3_', 'S3CO', 'S3_CO', 'S4CO2', 'S5', 'S4CO',
+    tab_result = pd.DataFrame(columns=['name', 'Wt', 'S1', 'S2A', 'S2B', 'S3', 'S3_', 'S3CO', 'S3_CO', 'S4CO2', 'S5', 'S4CO',
                                        'Tmax', 'kS1', 'kS2', 'kS3', 'kS3_', 'kS3CO', 'kS3_CO', 'kS4CO2', 'kS5',
                                        'kS4CO', 'dT'])
     for i in tab_areas.index:
@@ -439,7 +469,8 @@ def save_result():
         dict_result['name'] = '_'.join(tab_areas['obr'][i].split('_')[:-1])
         dict_result['Wt'] = Wt
         dict_result['S1'] = calc_Cpr(tab_areas['S1_area'][i], float(ui.S1_kg.text()), Wt)
-        dict_result['S2'] = calc_Cpr(tab_areas['S2_area'][i], float(ui.S2_kg.text()), Wt)
+        dict_result['S2A'] = calc_Cpr(tab_areas['S2A_area'][i], float(ui.S1_kg.text()), Wt)
+        dict_result['S2B'] = calc_Cpr(tab_areas['S2B_area'][i], float(ui.S2_kg.text()), Wt)
         dict_result['S3'] = calc_Cpr(tab_areas['S3_area'][i], float(ui.S3_kg.text()), Wt)
         dict_result['S3_'] = calc_Cpr(tab_areas['S3__area'][i], float(ui.S3__kg.text()), Wt)
         dict_result['S3CO'] = calc_Cpr(tab_areas['S3CO_area'][i], float(ui.S3CO_kg.text()), Wt)
@@ -522,6 +553,7 @@ ui.pushButton_save_change.clicked.connect(save_change)
 ui.listWidget.itemSelectionChanged.connect(choose_file)
 ui.doubleSpinBox1_t1.valueChanged.connect(change_param_1)
 ui.doubleSpinBox1_t2.valueChanged.connect(change_param_1)
+ui.doubleSpinBox1_t2_A.valueChanged.connect(change_param_1)
 ui.doubleSpinBox1_t3.valueChanged.connect(change_param_1)
 ui.spinBox1_bl1.valueChanged.connect(change_param_1)
 ui.spinBox1_bl2.valueChanged.connect(change_param_1)

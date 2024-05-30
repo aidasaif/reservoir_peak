@@ -1153,3 +1153,13 @@ class Ui_Graduation(object):
         self.label_47.setText(_translate("Graduation", "dT:"))
         self.dTmax.setText(_translate("Graduation", "000"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Tmax), _translate("Graduation", "Tmax"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    Graduation = QtWidgets.QWidget()
+    ui = Ui_Graduation()
+    ui.setupUi(Graduation)
+    Graduation.show()
+    sys.exit(app.exec_())

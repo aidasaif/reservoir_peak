@@ -31,7 +31,6 @@ def check_file_name(list_name):
                 check_list.append('_'.join(i.split('_')[:-1]))
     for i in check_list:
         if check_list.count(i) != 3:
-            print(i)
             error_list.append(i)
     return error_list
 
@@ -154,15 +153,19 @@ def draw_area(graphicsView, line, it1, it2, base_line, color):
     graphicsView.addItem(pfill)
 
 
-def draw_legend(graphicsView, xt1, xt2, xt3, xtmax, h):
+def draw_legend(graphicsView, xt1, xt2, xt2a, xt3, xtmax, h):
     t1 = pg.TextItem('t1', color='k')
     t2 = pg.TextItem('t2', color='k')
+    t2a = pg.TextItem('t2_a', color='k')
     t3 = pg.TextItem('t3', color='k')
     tmax = pg.TextItem('Tmax', color='r')
     graphicsView.addItem(t1)
     t1.setPos(xt1, h)
     graphicsView.addItem(t2)
     t2.setPos(xt2, h)
+    if xt2a:
+        graphicsView.addItem(t2a)
+        t2a.setPos(xt2a, h)
     if xt3:
         graphicsView.addItem(t3)
         t3.setPos(xt3, h)
@@ -179,11 +182,13 @@ def draw_tmax(graphicsView, ttmax):
 def calc_S1S2(line):
     it1 = find_intersection_zero(line['Absolute Intensity'].diff(), 6)[0][0]
     it2 = line.loc[line['Ret.Time'] == get_nearest_value(line['Ret.Time'], 3.4)].index.tolist()[0]
-    it3 = line.loc[line['Ret.Time'] == get_nearest_value(line['Ret.Time'], 17)].index.tolist()[0]
+    it2a = line.loc[line['Ret.Time'] == get_nearest_value(line['Ret.Time'], 10.5)].index.tolist()[0]
+    it3 = line.loc[line['Ret.Time'] == get_nearest_value(line['Ret.Time'], 21.8)].index.tolist()[0]
     area1 = calc_area(line, it1, it2, False)
-    area2 = calc_area(line, it2, it3, False)
+    area2 = calc_area(line, it2, it2a, False)
+    area3 = calc_area(line, it2a, it3, False)
     attention = True if area1 < 0 or area2 < 0 or it1 > 200 else False
-    return it1, it2, it3, area1, area2, attention
+    return it1, it2, it2a, it3, area1, area2, area3, attention
 
 
 def calc_Tmax(line):
@@ -194,7 +199,7 @@ def calc_Tmax(line):
 
 def calc_S3(line):
     it1 = find_intersection_zero(line['Absolute Intensity'].diff(), 6)[0][0]
-    it2 = line.loc[line['Ret.Time'] == 7].index.tolist()[0]
+    it2 = line.loc[line['Ret.Time'] == 11.8].index.tolist()[0]
     base_line = line['Absolute Intensity'].iloc[100:it2].min()
     if line['Absolute Intensity'][len(line['Ret.Time']) - 1] > base_line:
         it3 = len(line['Ret.Time']) - 1
@@ -209,7 +214,7 @@ def calc_S3(line):
 
 def calc_S3CO(line):
     it1 = line.iloc[:2600].loc[line['Absolute Intensity'] == line['Absolute Intensity'].iloc[:2600].min()].index.tolist()[0]
-    it2 = line.loc[line['Ret.Time'] == 13].index.tolist()[0]
+    it2 = line.loc[line['Ret.Time'] == 17.8].index.tolist()[0]
     it3 = len(line['Ret.Time']) - 1
     base_line = line['Absolute Intensity'].min()
     area1 = calc_area(line, it1, it2, base_line)
